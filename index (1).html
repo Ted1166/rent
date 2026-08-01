@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KodiGuard — Rent Tracking & Payment Protection</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-0:#080B14;
+    --bg-1:#0D1220;
+    --surface:#121A2C;
+    --surface-2:#161F35;
+    --border:#232E48;
+    --border-soft:#1A2338;
+    --blue:#3B82F6;
+    --blue-soft:#60A5FA;
+    --purple:#8B5CF6;
+    --orange:#F97316;
+    --green:#22C55E;
+    --red:#EF4444;
+    --amber:#EAB308;
+    --text-0:#F1F5F9;
+    --text-1:#B9C3D9;
+    --text-2:#7C88A6;
+    --grad-main: linear-gradient(90deg, var(--blue) 0%, var(--purple) 100%);
+    --grad-brand: linear-gradient(135deg, #2563EB 0%, #7C3AED 55%, #F97316 100%);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:
+      radial-gradient(circle at 15% 0%, rgba(59,130,246,0.10), transparent 40%),
+      radial-gradient(circle at 85% 15%, rgba(249,115,22,0.07), transparent 35%),
+      var(--bg-0);
+    color:var(--text-0);
+    font-family:'Inter', sans-serif;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3, .display{ font-family:'Space Grotesk', sans-serif; letter-spacing:-0.01em; }
+  .mono{ font-family:'JetBrains Mono', monospace; }
+  a{color:inherit;}
+  ::selection{ background:var(--purple); color:white;}
+
+  /* ---------- NAV ---------- */
+  nav{
+    position:sticky; top:0; z-index:50;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 32px;
+    background:rgba(8,11,20,0.85);
+    backdrop-filter: blur(14px);
+    border-bottom:1px solid var(--border-soft);
+  }
+  .brand{ display:flex; align-items:center; gap:12px; }
+  .brand-mark{
+    width:38px; height:38px; border-radius:10px;
+    background:var(--grad-brand);
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 0 0 1px rgba(255,255,255,0.06), 0 6px 18px -6px rgba(59,130,246,0.5);
+  }
+  .brand-mark svg{width:21px; height:21px;}
+  .brand-name{ font-family:'Space Grotesk'; font-weight:700; font-size:18px; line-height:1.1;}
+  .brand-sub{ font-size:11px; color:var(--text-2); letter-spacing:.04em; text-transform:uppercase;}
+  .nav-links{ display:flex; gap:4px; background:var(--surface); padding:4px; border-radius:12px; border:1px solid var(--border-soft);}
+  .nav-links button{
+    all:unset; cursor:pointer; display:flex; align-items:center; gap:7px;
+    padding:8px 16px; border-radius:9px; font-size:13.5px; font-weight:500; color:var(--text-1);
+    transition:.15s;
+  }
+  .nav-links button svg{width:15px; height:15px; opacity:.8;}
+  .nav-links button.active{ background:var(--grad-main); color:white; box-shadow:0 4px 14px -4px rgba(59,130,246,.6);}
+  .nav-links button:not(.active):hover{ background:var(--surface-2); color:var(--text-0);}
+  .nav-right{ display:flex; align-items:center; gap:14px;}
+  .caretaker-pill{
+    display:flex; align-items:center; gap:9px; padding:6px 12px 6px 6px; border-radius:99px;
+    background:var(--surface); border:1px solid var(--border-soft);
+  }
+  .avatar{ width:26px; height:26px; border-radius:99px; background:var(--grad-main); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700;}
+  .caretaker-pill .name{ font-size:12.5px; font-weight:600;}
+  .caretaker-pill .role{ font-size:10.5px; color:var(--text-2);}
+
+  @media (max-width: 980px){
+    .nav-links{ display:none; }
+  }
+
+  /* ---------- LAYOUT ---------- */
+  main{ max-width:1240px; margin:0 auto; padding:36px 32px 80px;}
+  .page{ display:none; }
+  .page.active{ display:block; animation:fadeIn .35s ease; }
+  @keyframes fadeIn{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;} }
+
+  .page-head{ display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:28px; flex-wrap:wrap; gap:14px;}
+  .eyebrow{ font-size:11.5px; font-weight:600; letter-spacing:.09em; text-transform:uppercase; color:var(--blue-soft); margin-bottom:8px; display:flex; align-items:center; gap:8px;}
+  .eyebrow::before{ content:''; width:6px; height:6px; border-radius:99px; background:var(--blue-soft); box-shadow:0 0 10px var(--blue-soft);}
+  .page-head h1{ font-size:30px; font-weight:700; }
+  .page-head p{ color:var(--text-2); font-size:14px; margin-top:6px; max-width:520px;}
+
+  .btn{
+    all:unset; cursor:pointer; display:inline-flex; align-items:center; gap:8px;
+    padding:11px 20px; border-radius:10px; font-size:13.5px; font-weight:600;
+    transition:.15s;
+  }
+  .btn svg{width:15px; height:15px;}
+  .btn-grad{ background:var(--grad-main); color:white; box-shadow:0 6px 18px -6px rgba(59,130,246,.55);}
+  .btn-grad:hover{ filter:brightness(1.08); transform:translateY(-1px); }
+  .btn-outline{ background:var(--surface); border:1px solid var(--border); color:var(--text-1);}
+  .btn-outline:hover{ border-color:var(--blue); color:var(--text-0); }
+
+  /* ---------- STAT CARDS ---------- */
+  .stat-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:30px;}
+  @media (max-width:900px){ .stat-grid{ grid-template-columns:repeat(2,1fr);} }
+  .stat-card{
+    background:var(--surface); border:1px solid var(--border-soft); border-radius:16px; padding:18px 20px;
+    position:relative; overflow:hidden;
+  }
+  .stat-card::after{ content:''; position:absolute; inset:0; opacity:0; background:var(--grad-main); mix-blend-mode:overlay; transition:.2s;}
+  .stat-top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;}
+  .stat-icon{ width:34px; height:34px; border-radius:10px; display:flex; align-items:center; justify-content:center;}
+  .stat-icon svg{ width:17px; height:17px;}
+  .stat-label{ font-size:12px; color:var(--text-2); font-weight:500;}
+  .stat-value{ font-size:25px; font-weight:700; font-family:'JetBrains Mono'; letter-spacing:-0.02em;}
+  .stat-sub{ font-size:11.5px; margin-top:6px; color:var(--text-2);}
+  .up{ color:var(--green);} .down{ color:var(--red);} .warn{ color:var(--amber);}
+
+  /* ---------- SPLIT LAYOUT ---------- */
+  .split{ display:grid; grid-template-columns:1.55fr 1fr; gap:20px; align-items:start;}
+  @media (max-width:980px){ .split{ grid-template-columns:1fr; } }
+
+  .card{ background:var(--surface); border:1px solid var(--border-soft); border-radius:18px; overflow:hidden;}
+  .card-head{ display:flex; align-items:center; justify-content:space-between; padding:18px 20px; border-bottom:1px solid var(--border-soft);}
+  .card-head h3{ font-size:15px; font-weight:700;}
+  .card-head .hint{ font-size:11.5px; color:var(--text-2); margin-top:3px;}
+  .card-body{ padding:6px 8px 14px;}
+
+  /* ---------- TENANT LIST ---------- */
+  .tenant-row{
+    display:grid; grid-template-columns:auto 1.4fr 1fr .8fr auto; align-items:center; gap:14px;
+    padding:13px 12px; border-radius:12px; transition:.15s;
+  }
+  .tenant-row:hover{ background:var(--surface-2); }
+  .t-avatar{ width:38px; height:38px; border-radius:11px; background:var(--surface-2); border:1px solid var(--border-soft); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; color:var(--text-1);}
+  .t-name{ font-size:13.5px; font-weight:600;}
+  .t-unit{ font-size:11.5px; color:var(--text-2); margin-top:2px;}
+  .t-amount{ font-family:'JetBrains Mono'; font-size:13px; color:var(--text-1);}
+  .t-due{ font-size:11.5px; color:var(--text-2);}
+  .badge{ font-size:10.5px; font-weight:700; padding:5px 10px; border-radius:99px; letter-spacing:.02em; text-transform:uppercase; display:inline-flex; align-items:center; gap:5px; white-space:nowrap;}
+  .badge::before{ content:''; width:5px; height:5px; border-radius:99px; background:currentColor;}
+  .badge-paid{ background:rgba(34,197,94,.12); color:var(--green);}
+  .badge-pending{ background:rgba(234,179,8,.13); color:var(--amber);}
+  .badge-overdue{ background:rgba(239,68,68,.13); color:var(--red);}
+  .row-action{ all:unset; cursor:pointer; width:32px; height:32px; border-radius:9px; display:flex; align-items:center; justify-content:center; background:var(--surface-2); border:1px solid var(--border-soft); color:var(--text-1); transition:.15s;}
+  .row-action:hover{ border-color:var(--blue); color:var(--blue-soft);}
+  .row-action svg{ width:14px; height:14px;}
+
+  /* ---------- SMS VERIFIER (signature element) ---------- */
+  .scan-card{
+    background:linear-gradient(180deg, var(--surface) 0%, var(--bg-1) 100%);
+    border:1px solid var(--border-soft); border-radius:18px; padding:0; position:relative; overflow:hidden;
+  }
+  .scan-head{ padding:18px 20px 14px; border-bottom:1px solid var(--border-soft); position:relative;}
+  .scan-head h3{ font-size:15px; font-weight:700; display:flex; align-items:center; gap:9px;}
+  .scan-head h3 svg{ width:17px; height:17px; color:var(--orange);}
+  .scan-head p{ font-size:11.5px; color:var(--text-2); margin-top:5px; line-height:1.5;}
+  .scan-body{ padding:16px 20px 20px;}
+  textarea{
+    width:100%; min-height:110px; resize:vertical; background:var(--bg-1);
+    border:1px solid var(--border); border-radius:12px; padding:12px 13px;
+    color:var(--text-0); font-family:'JetBrains Mono'; font-size:12px; line-height:1.6;
+    outline:none; transition:.15s;
+  }
+  textarea::placeholder{ color:var(--text-2); font-family:'Inter'; }
+  textarea:focus{ border-color:var(--blue); box-shadow:0 0 0 3px rgba(59,130,246,.15);}
+  select{
+    width:100%; background:var(--bg-1); border:1px solid var(--border); border-radius:10px; color:var(--text-0);
+    padding:10px 12px; font-size:12.5px; margin-bottom:10px; outline:none; font-family:'Inter';
+  }
+  .field-label{ font-size:11px; font-weight:600; color:var(--text-2); text-transform:uppercase; letter-spacing:.05em; margin-bottom:7px; display:block;}
+  .scan-btn{ width:100%; margin-top:12px; justify-content:center; }
+
+  .verdict{ margin-top:16px; border-radius:14px; padding:16px; display:none; animation:fadeIn .3s ease;}
+  .verdict.show{ display:block; }
+  .verdict.genuine{ background:rgba(34,197,94,.08); border:1px solid rgba(34,197,94,.3);}
+  .verdict.suspicious{ background:rgba(239,68,68,.08); border:1px solid rgba(239,68,68,.3);}
+  .verdict-top{ display:flex; align-items:center; gap:10px; margin-bottom:10px;}
+  .verdict-icon{ width:34px; height:34px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .verdict.genuine .verdict-icon{ background:rgba(34,197,94,.18); color:var(--green);}
+  .verdict.suspicious .verdict-icon{ background:rgba(239,68,68,.18); color:var(--red);}
+  .verdict-icon svg{ width:18px; height:18px;}
+  .verdict-title{ font-size:14px; font-weight:700;}
+  .verdict.genuine .verdict-title{ color:var(--green);}
+  .verdict.suspicious .verdict-title{ color:var(--red);}
+  .verdict-sub{ font-size:11px; color:var(--text-2);}
+  .reason-list{ list-style:none; margin-top:4px;}
+  .reason-list li{ font-size:12px; color:var(--text-1); padding:5px 0 5px 20px; position:relative; line-height:1.5;}
+  .reason-list li::before{ position:absolute; left:0; top:5px; font-size:13px;}
+  .verdict.genuine .reason-list li::before{ content:'✓'; color:var(--green);}
+  .verdict.suspicious .reason-list li::before{ content:'⚠'; color:var(--red);}
+
+  .scan-history{ padding:14px 20px 18px; border-top:1px solid var(--border-soft);}
+  .scan-history h4{ font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--text-2); margin-bottom:10px; font-weight:600;}
+  .sh-item{ display:flex; align-items:center; gap:10px; padding:8px 0; font-size:12px; border-bottom:1px solid var(--border-soft);}
+  .sh-item:last-child{ border:none; }
+  .sh-dot{ width:7px; height:7px; border-radius:99px; flex-shrink:0;}
+  .sh-item .sh-text{ color:var(--text-1); flex:1;}
+  .sh-item .sh-time{ color:var(--text-2); font-size:10.5px; font-family:'JetBrains Mono';}
+
+  /* ---------- PAYMENTS PAGE ---------- */
+  .table-wrap{ overflow-x:auto; }
+  table{ width:100%; border-collapse:collapse; min-width:640px;}
+  thead th{ text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-2); padding:12px 14px; border-bottom:1px solid var(--border-soft); font-weight:600;}
+  tbody td{ padding:13px 14px; font-size:13px; border-bottom:1px solid var(--border-soft); color:var(--text-1);}
+  tbody tr:hover{ background:var(--surface-2); }
+  tbody tr:last-child td{ border-bottom:none; }
+  .code-chip{ font-family:'JetBrains Mono'; font-size:11.5px; background:var(--bg-1); border:1px solid var(--border); padding:3px 8px; border-radius:6px; color:var(--text-1);}
+
+  /* ---------- TENANTS FULL PAGE ---------- */
+  .tenant-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px;}
+  @media (max-width:980px){ .tenant-grid{ grid-template-columns:repeat(2,1fr);} }
+  @media (max-width:680px){ .tenant-grid{ grid-template-columns:1fr;} }
+  .tenant-card{ background:var(--surface); border:1px solid var(--border-soft); border-radius:16px; padding:18px;}
+  .tenant-card-top{ display:flex; align-items:center; gap:12px; margin-bottom:14px;}
+  .tenant-card .t-avatar{ width:44px; height:44px; font-size:15px;}
+  .tenant-card-name{ font-size:14.5px; font-weight:700;}
+  .tenant-card-unit{ font-size:12px; color:var(--text-2); margin-top:2px;}
+  .tenant-meta{ display:flex; justify-content:space-between; font-size:12px; padding:7px 0; border-bottom:1px solid var(--border-soft);}
+  .tenant-meta:last-of-type{ border:none; }
+  .tenant-meta span:first-child{ color:var(--text-2);}
+  .tenant-meta span:last-child{ color:var(--text-0); font-weight:500; font-family:'JetBrains Mono'; font-size:11.5px;}
+
+  /* ---------- FOOTER CTA ---------- */
+  .cta-band{
+    margin-top:50px; border-radius:22px; padding:38px 40px; position:relative; overflow:hidden;
+    background:linear-gradient(120deg, #0F1830 0%, #17213B 100%);
+    border:1px solid var(--border-soft);
+  }
+  .cta-band::before{ content:''; position:absolute; width:340px; height:340px; border-radius:99px; background:var(--grad-brand); opacity:.18; filter:blur(60px); top:-140px; right:-80px;}
+  .cta-inner{ position:relative; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:20px;}
+  .cta-inner h2{ font-size:22px; margin-bottom:6px;}
+  .cta-inner p{ color:var(--text-2); font-size:13.5px; max-width:420px;}
+
+  .empty-note{ font-size:11.5px; color:var(--text-2); text-align:center; padding:18px; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="brand">
+    <div class="brand-mark">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M12 2L3 6v6c0 5 3.8 8.7 9 10 5.2-1.3 9-5 9-10V6l-9-4z" fill="white" fill-opacity=".95"/><path d="M8.5 12.2l2.3 2.3 4.7-4.9" stroke="#0D1220" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div>
+      <div class="brand-name">KodiGuard</div>
+      <div class="brand-sub">Rent & Payment Security</div>
+    </div>
+  </div>
+
+  <div class="nav-links" id="navLinks">
+    <button class="active" data-page="dashboard">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+      Dashboard
+    </button>
+    <button data-page="tenants">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Tenants
+    </button>
+    <button data-page="payments">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></svg>
+      Payments
+    </button>
+    <button data-page="verify">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.6 8.7-8 10-4.4-1.3-8-5-8-10V6l8-4z"/></svg>
+      Verify SMS
+    </button>
+  </div>
+
+  <div class="nav-right">
+    <div class="caretaker-pill">
+      <div class="avatar">OJ</div>
+      <div>
+        <div class="name">Otieno J.</div>
+        <div class="role">Caretaker · Kisumu</div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<main>
+
+  <!-- ================= DASHBOARD ================= -->
+  <section class="page active" id="page-dashboard">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow">Nyalenda Court · 12 Units</div>
+        <h1>Good evening, Otieno 👋</h1>
+        <p>Here's where rent collection stands this month, and whether anything needs your eye.</p>
+      </div>
+      <button class="btn btn-grad" onclick="goPage('verify')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.6 8.7-8 10-4.4-1.3-8-5-8-10V6l8-4z"/></svg>
+        Verify a payment SMS
+      </button>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-top">
+          <div class="stat-icon" style="background:rgba(34,197,94,.13); color:var(--green);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          </div>
+        </div>
+        <div class="stat-label">Collected this month</div>
+        <div class="stat-value">Ksh 96,000</div>
+        <div class="stat-sub up">8 of 12 units paid</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-top">
+          <div class="stat-icon" style="background:rgba(234,179,8,.13); color:var(--amber);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          </div>
+        </div>
+        <div class="stat-label">Pending</div>
+        <div class="stat-value">Ksh 24,000</div>
+        <div class="stat-sub warn">3 units · due within 5 days</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-top">
+          <div class="stat-icon" style="background:rgba(239,68,68,.13); color:var(--red);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.86L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.86a2 2 0 0 0-3.4 0z"/></svg>
+          </div>
+        </div>
+        <div class="stat-label">Overdue</div>
+        <div class="stat-value">Ksh 12,000</div>
+        <div class="stat-sub down">1 unit · 9 days late</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-top">
+          <div class="stat-icon" style="background:rgba(59,130,246,.13); color:var(--blue-soft);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.6 8.7-8 10-4.4-1.3-8-5-8-10V6l8-4z"/></svg>
+          </div>
+        </div>
+        <div class="stat-label">SMS scans this month</div>
+        <div class="stat-value">14</div>
+        <div class="stat-sub down">1 flagged as suspicious</div>
+      </div>
+    </div>
+
+    <div class="split">
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <h3>Rent status — August</h3>
+            <div class="hint">Tap a tenant to record or verify their payment</div>
+          </div>
+          <button class="btn btn-outline" onclick="goPage('tenants')">View all</button>
+        </div>
+        <div class="card-body" id="tenantListDash"></div>
+      </div>
+
+      <div class="scan-card">
+        <div class="scan-head">
+          <h3>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.86L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.86a2 2 0 0 0-3.4 0z"/></svg>
+            Recent scans
+          </h3>
+          <p>Every M-Pesa message you check gets logged here — so you always have a record if a payment is disputed.</p>
+        </div>
+        <div class="scan-history" style="border-top:none; padding-top:16px;" id="scanHistoryDash"></div>
+        <div style="padding: 0 20px 20px;">
+          <button class="btn btn-grad" style="width:100%; justify-content:center;" onclick="goPage('verify')">Check a new message</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="cta-band">
+      <div class="cta-inner">
+        <div>
+          <h2>Never chase a payment record from memory again.</h2>
+          <p>KodiGuard keeps every tenant, every payment, and every M-Pesa message in one place — so nothing slips through, and no one can fool you with a fake screenshot.</p>
+        </div>
+        <button class="btn btn-grad" onclick="goPage('tenants')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          Open full tenant list
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= TENANTS ================= -->
+  <section class="page" id="page-tenants">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow">All Units</div>
+        <h1>Tenants</h1>
+        <p>Every unit at Nyalenda Court, who's paid, and when the next rent is due.</p>
+      </div>
+      <button class="btn btn-grad">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        Add tenant
+      </button>
+    </div>
+    <div class="tenant-grid" id="tenantGrid"></div>
+  </section>
+
+  <!-- ================= PAYMENTS ================= -->
+  <section class="page" id="page-payments">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow">Payment Log</div>
+        <h1>Payment history</h1>
+        <p>A running record of every rent payment received, with the M-Pesa code attached as proof.</p>
+      </div>
+      <button class="btn btn-outline">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        Export
+      </button>
+    </div>
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Tenant</th><th>Unit</th><th>Amount</th><th>M-Pesa code</th><th>Date</th><th>Status</th></tr></thead>
+          <tbody id="paymentsTable"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= VERIFY SMS ================= -->
+  <section class="page" id="page-verify">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow">Payment Protection</div>
+        <h1>Verify an M-Pesa message</h1>
+        <p>Paste the message a tenant sent you as proof of payment. KodiGuard checks it for the signs of a faked or edited screenshot before you mark rent as paid.</p>
+      </div>
+    </div>
+
+    <div class="split">
+      <div class="scan-card" style="grid-column:1;">
+        <div class="scan-head">
+          <h3>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.6 8.7-8 10-4.4-1.3-8-5-8-10V6l8-4z"/></svg>
+            Message scanner
+          </h3>
+          <p>Copy the exact text the tenant sent — don't retype it — for the most accurate check.</p>
+        </div>
+        <div class="scan-body">
+          <label class="field-label">Which tenant is this from?</label>
+          <select id="tenantSelect">
+            <option value="">Select tenant (optional)</option>
+          </select>
+          <label class="field-label">Pasted message</label>
+          <textarea id="smsInput" placeholder="Paste the M-Pesa message here, e.g.&#10;RJ72K9LQXM Confirmed. Ksh8,000.00 sent to OTIENO JUMA on 1/8/26 at 6:41 PM. New M-PESA balance is Ksh12,340.00."></textarea>
+          <button class="btn btn-grad scan-btn" onclick="runScan()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            Scan message
+          </button>
+
+          <div class="verdict" id="verdictBox">
+            <div class="verdict-top">
+              <div class="verdict-icon" id="verdictIcon"></div>
+              <div>
+                <div class="verdict-title" id="verdictTitle"></div>
+                <div class="verdict-sub" id="verdictSub"></div>
+              </div>
+            </div>
+            <ul class="reason-list" id="verdictReasons"></ul>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card" style="margin-bottom:16px;">
+          <div class="card-head"><div><h3>What KodiGuard checks</h3><div class="hint">Common tricks used to fake rent payment</div></div></div>
+          <div style="padding:14px 20px 18px; display:flex; flex-direction:column; gap:12px;">
+            <div style="display:flex; gap:10px; align-items:flex-start;">
+              <div style="width:26px;height:26px;border-radius:8px;background:rgba(59,130,246,.13);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#60A5FA" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+              </div>
+              <div style="font-size:12.5px; color:var(--text-1); line-height:1.5;">Real M-Pesa transaction code format — 10 characters, starts with a letter</div>
+            </div>
+            <div style="display:flex; gap:10px; align-items:flex-start;">
+              <div style="width:26px;height:26px;border-radius:8px;background:rgba(59,130,246,.13);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#60A5FA" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+              </div>
+              <div style="font-size:12.5px; color:var(--text-1); line-height:1.5;">Amount and name in the message match what's expected for the unit</div>
+            </div>
+            <div style="display:flex; gap:10px; align-items:flex-start;">
+              <div style="width:26px;height:26px;border-radius:8px;background:rgba(59,130,246,.13);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#60A5FA" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+              </div>
+              <div style="font-size:12.5px; color:var(--text-1); line-height:1.5;">Language used by "reversed payment" and "sent by mistake" scams</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="scan-card">
+          <div class="scan-head">
+            <h3 style="font-size:13.5px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+              Scan history
+            </h3>
+          </div>
+          <div class="scan-history" style="border-top:none;" id="scanHistoryVerify"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+  // ---------------- DATA ----------------
+  const tenants = [
+    {id:1, name:"Otieno Juma", unit:"Unit 1A", rent:8000, status:"paid", due:"5 Aug", phone:"07XX 111 222", lastPaid:"1 Aug"},
+    {id:2, name:"Achieng Wilfrida", unit:"Unit 1B", rent:8000, status:"paid", due:"5 Aug", phone:"07XX 222 333", lastPaid:"3 Aug"},
+    {id:3, name:"Brian Omondi", unit:"Unit 2A", rent:8000, status:"pending", due:"5 Aug", phone:"07XX 333 444", lastPaid:"6 Jul"},
+    {id:4, name:"Faith Adhiambo", unit:"Unit 2B", rent:8000, status:"paid", due:"5 Aug", phone:"07XX 444 555", lastPaid:"2 Aug"},
+    {id:5, name:"Kevin Otieno", unit:"Unit 3A", rent:8000, status:"overdue", due:"27 Jul", phone:"07XX 555 666", lastPaid:"20 Jun"},
+    {id:6, name:"Mercy Anyango", unit:"Unit 3B", rent:8000, status:"paid", due:"5 Aug", phone:"07XX 666 777", lastPaid:"1 Aug"},
+    {id:7, name:"Dennis Owino", unit:"Unit 4A", rent:8000, status:"pending", due:"5 Aug", phone:"07XX 777 888", lastPaid:"4 Jul"},
+    {id:8, name:"Sharon Atieno", unit:"Unit 4B", rent:8000, status:"paid", due:"5 Aug", phone:"07XX 888 999", lastPaid:"1 Aug"},
+  ];
+
+  const payments = [
+    {tenant:"Otieno Juma", unit:"1A", amount:8000, code:"RJ72K9LQXM", date:"1 Aug 2026", status:"verified"},
+    {tenant:"Achieng Wilfrida", unit:"1B", amount:8000, code:"TP41N8WYZR", date:"3 Aug 2026", status:"verified"},
+    {tenant:"Faith Adhiambo", unit:"2B", amount:8000, code:"QK55M2DFHT", date:"2 Aug 2026", status:"verified"},
+    {tenant:"Mercy Anyango", unit:"3B", amount:8000, code:"XL83B7RQVN", date:"1 Aug 2026", status:"verified"},
+    {tenant:"Sharon Atieno", unit:"4B", amount:8000, code:"HD29Y4TKMS", date:"1 Aug 2026", status:"verified"},
+    {tenant:"Kevin Otieno", unit:"3A", amount:8000, code:"—", date:"20 Jun 2026", status:"overdue"},
+  ];
+
+  const statusMeta = {
+    paid:{label:"Paid", cls:"badge-paid"},
+    pending:{label:"Pending", cls:"badge-pending"},
+    overdue:{label:"Overdue", cls:"badge-overdue"},
+  };
+
+  const initials = n => n.split(" ").map(w=>w[0]).slice(0,2).join("").toUpperCase();
+
+  // ---------------- NAVIGATION ----------------
+  function goPage(name){
+    document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+    document.getElementById("page-"+name).classList.add("active");
+    document.querySelectorAll(".nav-links button").forEach(b=>b.classList.toggle("active", b.dataset.page===name));
+    window.scrollTo({top:0, behavior:"smooth"});
+  }
+  document.querySelectorAll(".nav-links button").forEach(b=>{
+    b.addEventListener("click", ()=>goPage(b.dataset.page));
+  });
+
+  // ---------------- RENDER: dashboard tenant list ----------------
+  function renderTenantRow(t, compact){
+    const meta = statusMeta[t.status];
+    return `
+      <div class="tenant-row">
+        <div class="t-avatar">${initials(t.name)}</div>
+        <div>
+          <div class="t-name">${t.name}</div>
+          <div class="t-unit">${t.unit}</div>
+        </div>
+        <div class="t-amount">Ksh ${t.rent.toLocaleString()}</div>
+        <div class="t-due">Due ${t.due}</div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span class="badge ${meta.cls}">${meta.label}</span>
+        </div>
+      </div>`;
+  }
+
+  document.getElementById("tenantListDash").innerHTML = tenants.map(t=>renderTenantRow(t)).join("");
+
+  // ---------------- RENDER: tenants page ----------------
+  document.getElementById("tenantGrid").innerHTML = tenants.map(t=>{
+    const meta = statusMeta[t.status];
+    return `
+      <div class="tenant-card">
+        <div class="tenant-card-top">
+          <div class="t-avatar">${initials(t.name)}</div>
+          <div style="flex:1;">
+            <div class="tenant-card-name">${t.name}</div>
+            <div class="tenant-card-unit">${t.unit}</div>
+          </div>
+          <span class="badge ${meta.cls}">${meta.label}</span>
+        </div>
+        <div class="tenant-meta"><span>Rent</span><span>Ksh ${t.rent.toLocaleString()}</span></div>
+        <div class="tenant-meta"><span>Due date</span><span>${t.due}</span></div>
+        <div class="tenant-meta"><span>Last paid</span><span>${t.lastPaid}</span></div>
+        <div class="tenant-meta"><span>Phone</span><span>${t.phone}</span></div>
+      </div>`;
+  }).join("");
+
+  // ---------------- RENDER: payments table ----------------
+  document.getElementById("paymentsTable").innerHTML = payments.map(p=>{
+    const ok = p.status==="verified";
+    return `
+      <tr>
+        <td style="color:var(--text-0); font-weight:500;">${p.tenant}</td>
+        <td>${p.unit}</td>
+        <td class="mono">Ksh ${p.amount.toLocaleString()}</td>
+        <td>${p.code==="—" ? "—" : `<span class="code-chip">${p.code}</span>`}</td>
+        <td>${p.date}</td>
+        <td><span class="badge ${ok?'badge-paid':'badge-overdue'}">${ok?'Verified':'Missing'}</span></td>
+      </tr>`;
+  }).join("");
+
+  // ---------------- Tenant select for scanner ----------------
+  const sel = document.getElementById("tenantSelect");
+  tenants.forEach(t=>{
+    const o = document.createElement("option");
+    o.value = t.id; o.textContent = `${t.name} — ${t.unit} (Ksh ${t.rent.toLocaleString()})`;
+    sel.appendChild(o);
+  });
+
+  // ---------------- SCAN HISTORY ----------------
+  let scanLog = [
+    {ok:true, text:"Otieno Juma · Unit 1A · Ksh 8,000 — genuine", time:"Today, 6:42 PM"},
+    {ok:false, text:"Unknown sender · 'reversed payment, send back' — flagged", time:"Yesterday, 4:10 PM"},
+    {ok:true, text:"Faith Adhiambo · Unit 2B · Ksh 8,000 — genuine", time:"2 Aug, 11:05 AM"},
+  ];
+  function renderScanHistory(){
+    const html = scanLog.map(s=>`
+      <div class="sh-item">
+        <div class="sh-dot" style="background:${s.ok?'var(--green)':'var(--red)'}"></div>
+        <div class="sh-text">${s.text}</div>
+        <div class="sh-time">${s.time}</div>
+      </div>`).join("");
+    document.getElementById("scanHistoryDash").innerHTML = html;
+    document.getElementById("scanHistoryVerify").innerHTML = html;
+  }
+  renderScanHistory();
+
+  // ---------------- SCAM DETECTION HEURISTIC ----------------
+  const scamPhrases = [
+    "sent by mistake", "wrong number", "send back", "reverse the money",
+    "reversed", "refund me", "urgent", "sent in error", "cancel the transaction",
+    "wrong account", "return the money", "confirm and send"
+  ];
+
+  function runScan(){
+    const raw = document.getElementById("smsInput").value.trim();
+    const box = document.getElementById("verdictBox");
+    const reasons = [];
+    let ok = true;
+
+    if(!raw){
+      alert("Paste the message text first.");
+      return;
+    }
+
+    const tenantId = sel.value;
+    const tenant = tenants.find(t=>String(t.id)===String(tenantId));
+
+    // 1. Transaction code check: 10 chars, starts with a letter, alphanumeric uppercase
+    const codeMatch = raw.match(/\b([A-Z][A-Z0-9]{9})\b/);
+    if(codeMatch){
+      reasons.push(`Transaction code <span class="mono">${codeMatch[1]}</span> matches the real M-Pesa format`);
+    } else {
+      ok = false;
+      reasons.push("No valid M-Pesa transaction code found — genuine messages always start with one");
+    }
+
+    // 2. "Confirmed" keyword
+    if(/confirmed/i.test(raw)){
+      reasons.push("Contains the standard 'Confirmed' wording M-Pesa uses");
+    } else {
+      ok = false;
+      reasons.push("Missing the word 'Confirmed' — genuine M-Pesa alerts always include it");
+    }
+
+    // 3. Amount check
+    const amountMatch = raw.match(/Ksh\s?([\d,]+(?:\.\d{2})?)/i);
+    if(amountMatch){
+      const amt = parseInt(amountMatch[1].replace(/,/g,""));
+      if(tenant){
+        if(amt === tenant.rent){
+          reasons.push(`Amount Ksh ${amt.toLocaleString()} matches ${tenant.name}'s rent exactly`);
+        } else {
+          ok = false;
+          reasons.push(`Amount Ksh ${amt.toLocaleString()} does not match ${tenant.name}'s expected rent of Ksh ${tenant.rent.toLocaleString()}`);
+        }
+      } else {
+        reasons.push(`Found amount Ksh ${amt.toLocaleString()} — select a tenant above to auto-check this against their rent`);
+      }
+    } else {
+      ok = false;
+      reasons.push("Couldn't find a clear amount in the message");
+    }
+
+    // 4. Balance mention (genuine SMS almost always include "New M-PESA balance")
+    if(/balance/i.test(raw)){
+      reasons.push("Includes account balance line, typical of a genuine alert");
+    } else {
+      reasons.push("No balance line found — worth a second look if this was sent as plain text, not a screenshot");
+    }
+
+    // 5. Scam phrase detection
+    const foundPhrases = scamPhrases.filter(p=>raw.toLowerCase().includes(p));
+    if(foundPhrases.length){
+      ok = false;
+      reasons.push(`Contains common scam phrasing: "${foundPhrases[0]}" — this is a known trick to get you to send money back`);
+    }
+
+    // Render verdict
+    box.classList.remove("genuine","suspicious");
+    box.classList.add("show", ok ? "genuine" : "suspicious");
+    document.getElementById("verdictIcon").innerHTML = ok
+      ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>`
+      : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 9v4M12 17h.01M10.3 3.86L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.86a2 2 0 0 0-3.4 0z"/></svg>`;
+    document.getElementById("verdictTitle").textContent = ok ? "Looks genuine" : "Looks suspicious — check before accepting";
+    document.getElementById("verdictSub").textContent = tenant ? `Checked against ${tenant.name} · ${tenant.unit}` : "No tenant selected for cross-check";
+    document.getElementById("verdictReasons").innerHTML = reasons.map(r=>`<li>${r}</li>`).join("");
+
+    // Log it
+    const label = tenant ? `${tenant.name} · ${tenant.unit}` : "Unlinked message";
+    scanLog.unshift({ok, text:`${label} — ${ok?'genuine':'flagged'}`, time:"Just now"});
+    scanLog = scanLog.slice(0,6);
+    renderScanHistory();
+  }
+</script>
+</body>
+</html>
